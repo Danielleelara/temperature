@@ -1,14 +1,40 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Button, Image, StyleSheet, TextInput, Alert } from 'react-native';
+import React, { useEffect, useState } from "react";
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import blogFetch from '@/config';
 
-export default function HomeScreen() {
+type TemperatureProps = {
+  city?: string;
+  temp?: number
+}
+
+export default function HomeScreen(){
+  const [temperature, setTemperature] = useState<TemperatureProps>();
+  const [city, setCity] = useState('');
+
+  const getTemperature = async (cidade: string) => {
+    if(!cidade){
+      alert("O campo de cidade está vazio");
+      return;
+    }
+    try {
+      const response = await blogFetch.get(`/weather?key=1d24e491&city_name=${cidade}`, {
+        method: "GET",
+      });
+      setTemperature(response.data.results);
+    } catch (error) {
+      console.log('errou')
+      alert("Essa cidade não existe tente novamente");
+    }
+  };
+
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#c1c9cb' }}
       headerImage={
         <Image
           source={require('@/assets/images/partial-react-logo.png')}
@@ -16,36 +42,24 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">Temperatura hoje</ThemedText>
+        
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+      
+      <TextInput
+        style={{
+          color: 'white',
+          height: 40,
+          borderColor: 'gray',
+          borderWidth: 1,
+        }}
+       value={city}
+       onChangeText={(e)=> setCity(e)}
+      />
+         <ThemedText type="title">{temperature?.city || ''}</ThemedText>
+        <ThemedText type="title">{temperature?.temp! || ''} graus</ThemedText>
+        <Button onPress={()=> getTemperature(city)} title='Buscar tempo'></Button>
+    
     </ParallaxScrollView>
   );
 }
